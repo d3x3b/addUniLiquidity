@@ -33,7 +33,6 @@ function sortTokens(tokenA: Address, tokenB: Address): [Address, Address] {
 describe("Liquidity Tests", function() {
     async function deployUniswapFixture() {
         const [owner, user1] = await hre.viem.getWalletClients();
-        const ownerAddress = owner.account.address;
         
         // Deploy Factory
         const factoryContract = await hre.viem.deployContract("UniswapV2Factory", [owner.account.address]);
@@ -64,7 +63,7 @@ describe("Liquidity Tests", function() {
             ]);
         console.log("Tokens deployed at:", {
             mockTokenA: mockTokenA.address,
-            eurcToken: mockTokenB.address
+            mockTokenB: mockTokenB.address
         });
         // Balance owner After deploying tokens
         const mockTokenAbalance = await mockTokenA.read.balanceOf([owner.account.address]);
@@ -109,31 +108,25 @@ describe("Liquidity Tests", function() {
         const mockTokenAsDeposit = BigInt(10) * BigInt(10 ** 18);
         const mockTokenBsDeposit = BigInt(10) * BigInt(10 ** 6);
         console.log("Deposit amounts:", {
-            mockTokenBsDeposit: mockTokenBsDeposit.toString(),
-            mockTokenAsDeposit: mockTokenAsDeposit.toString()
+            mockTokenBDeposit: mockTokenBsDeposit.toString(),
+            mockTokenADeposit: mockTokenAsDeposit.toString()
         });
         // checks before adding liquidity
-        const oiiaiBalance = await mockTokenA.read.balanceOf([owner.account.address]);
-        const eurcBalance = await mockTokenB.read.balanceOf([owner.account.address]);
+        const tokenAbalance = await mockTokenA.read.balanceOf([owner.account.address]);
+        const tokenBbalance = await mockTokenB.read.balanceOf([owner.account.address]);
         console.log("Token balances before adding liquidity:", {
-            oiiaiBalance,
-            eurcBalance
+            tokenAbalance,
+            tokenBbalance
         });
-    
-
-        // Calculate minimum amounts accounting for tax
-        const minOiiaiAmount = mockTokenAsDeposit * BigInt(Math.floor((1 - taxRate) * 1000)) / BigInt(1000);
-        const minEurcAmount = mockTokenBsDeposit; // if EURC has no tax
-
-        
+            
         try {
             const addLiquidityTx = await router.write.addLiquidity([
                 token0,
                 token1,
                 mockTokenAsDeposit,
                 mockTokenBsDeposit,
-                minOiiaiAmount,  // minimum amount accounting for tax
-                minEurcAmount,   // minimum amount for non-tax token
+                0n, 
+                0n,   
                 owner.account.address,
                 BigInt(Math.floor(Date.now() / 1000) + 60 * 10)
             ]);
@@ -166,11 +159,11 @@ describe("Liquidity Tests", function() {
             // Check reserves
             const reserves = await pair.read.getReserves();
 
-            const expectedOiiaiAmount = BigInt(1000) * BigInt(10 ** 18);
-            const expectedEurcAmount = BigInt(1000) * BigInt(10 ** 6);
+            const expectedTokenA = BigInt(1000) * BigInt(10 ** 18);
+            const expectedTokenB = BigInt(1000) * BigInt(10 ** 6);
 
-            expect(reserves[0]).to.equal(expectedOiiaiAmount);
-            expect(reserves[1]).to.equal(expectedEurcAmount);
+            expect(reserves[0]).to.equal(expectedTokenA);
+            expect(reserves[1]).to.equal(expectedTokenB);
 
             // Check LP balance
             const lpBalance = await pair.read.balanceOf([owner.account.address]);
