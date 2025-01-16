@@ -23,10 +23,6 @@ const config: HardhatUserConfig = {
     hardhat: {
       chainId: 31337,
       allowUnlimitedContractSize: true,
-      // forking: {
-      //   url: "https://eth-mainnet.g.alchemy.com/v2/alcht_TVlU7crdZVYymy8C4YXDLrQE1ah8CZ",
-      //   blockNumber: 25049258,
-      // }
     }
   },
   dependencyCompiler: {
